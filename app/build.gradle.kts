@@ -21,21 +21,48 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
-        // Load API key from properties file
+        // Load API keys from properties file
         val properties = Properties()
         val propertiesFile = rootProject.file("api_key.properties")
-        val apiKey = if (propertiesFile.exists()) {
+        val openAiKey = if (propertiesFile.exists()) {
             properties.load(propertiesFile.inputStream())
             properties.getProperty("OPENAI_API_KEY")
                 ?.trim()
                 ?.removeSurrounding("\"")
+                ?.replace(Regex("[\\s%]+$"), "") // Remove trailing whitespace and % characters
                 ?.ifBlank { null }
         } else null
+
+        val geminiKey = if (propertiesFile.exists()) {
+            properties.getProperty("GEMINI_API_KEY")
+                ?.trim()
+                ?.removeSurrounding("\"")
+                ?.replace(Regex("[\\s%]+$"), "") // Remove trailing whitespace and % characters
+                ?.ifBlank { null }
+        } else null
+
+        if (openAiKey != null) {
+            println("Loaded OpenAI API Key: ${openAiKey.take(10)}... (length: ${openAiKey.length})")
+        } else {
+            println("Warning: No OpenAI API key found in api_key.properties")
+        }
+
+        if (geminiKey != null) {
+            println("Loaded Gemini API Key: ${geminiKey.take(10)}... (length: ${geminiKey.length})")
+        } else {
+            println("Warning: No Gemini API key found in api_key.properties")
+        }
 
         buildConfigField(
             "String",
             "OPENAI_API_KEY",
-            "\"${apiKey ?: ""}\""
+            "\"${openAiKey ?: ""}\""
+        )
+
+        buildConfigField(
+            "String",
+            "GEMINI_API_KEY",
+            "\"${geminiKey ?: ""}\""
         )
     }
 
